@@ -1,16 +1,29 @@
 import express from "express";
 import dotenv from "dotenv";
-
+import path from "path";
+import { fileURLToPath } from "url";
 
 import authRoute from "./routes/auth.route.js";
 import messageRoute from "./routes/message.route.js";
-dotenv.config(); 
+
+dotenv.config();
 
 const app = express();
+const __dirname = path.resolve();
 
 const PORT = process.env.PORT || 3000;
 
-app.use("/api/auth", (await import("./routes/auth.route.js")).default);
-app.use("/api/messages", (await import("./routes/message.route.js")).default);
+// API routes
+app.use("/api/auth", authRoute);
+app.use("/api/messages", messageRoute);
+
+// Serve Vite build in production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+  app.get("*", (_, res) => {
+    res.sendFile(path.join(__dirname, "../frontend", "dist","index.html"));
+  });
+}
 
 app.listen(PORT, () => console.log("Server running on port:" + PORT));
